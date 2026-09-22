@@ -15,9 +15,10 @@ def publish_fx_settlement_data():
 
     MERCHANT_POOL = generate_merchant_pool(num_merchants=25, output_path="../data/merchant_dim.json")
 
-    connection = pika.BlockingConnection(pika.ConnectionParameters("localhost"))
+    credentials = pika.PlainCredentials("admin","securepassword123")
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host="localhost", port=5672, credentials=credentials))
     channel = connection.channel()
-    channel.queue_declare(queue="settlement_fx_queue")
+    channel.queue_declare(queue="settlement_fx_queue", durable=True)
 
     while True:
         try:
@@ -27,14 +28,16 @@ def publish_fx_settlement_data():
                 data = response.json()
 
                 if data.get("result") == "success":
-                    rates = data.get("rates",{})
+                    rates = data.get("conversion_rates", {})
+
                     target_currencies = ["EUR", "GBP", "USD", "JPY", "CHF"]
                     currency_choice = random.choice(target_currencies)
 
                     if currency_choice in rates:
                         live_rate = rates[currency_choice]
+
                         merchant = random.choice(MERCHANT_POOL)
-                        gross_amount = round(random.uniform(200.0, 15000.0),2)
+                        gross_amount = round(random.uniform(200.0, 15000.0), 2)
 
                         transaction = {
                             "merchant_id": merchant["merchant_id"],
@@ -45,18 +48,27 @@ def publish_fx_settlement_data():
                             "converted_target_amount": round(gross_amount * live_rate, 2),
                             "provider_timestamp": data.get("time_last_update_utc"),
                             "ingestion_timestamp": datetime.utcnow().isoformat(),
-                            "status": random.choices(["SETTLED","PENDING","FAILED"])[0]
+                            "status": random.choice(["SETTLED", "PENDING", "FAILED"])
                         }
 
-                        channel.basic_publish(exchange='', routing_key="settlement_fx_queue", body=json.dumps(transaction))
+                        channel.basic_publish(
+                            exchange="",
+                            routing_key="settlement_fx_queue",
+                            body=json.dumps(transaction),
+                            properties=pika.BasicProperties(
+                                delivery_mode=pika.DeliveryMode.Persistent
+                            )
+                        )
+
+                        print(transaction)
 
                     else:
-                        print(f"API error response: {data.get('error_type')}")
+                        print(f"API error response: {data.get('error-type')}")
 
                 else:
                     print(f"HTTP Error: {response.status_code}")
 
-                time.sleep(10)
+                time.sleep(1)
 
         except Exception as e:
             print(e)
