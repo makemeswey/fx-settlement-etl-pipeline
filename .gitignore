@@ -2,3 +2,4 @@
 etl/__pycache__
 venv
 data/merchant_dim.json
+data/bronze
