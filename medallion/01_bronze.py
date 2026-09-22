@@ -1,3 +1,5 @@
+# The consumer in this context
+
 import pika
 import json
 import os
@@ -15,7 +17,7 @@ def consume_data():
     channel = connection.channel()
     channel.queue_declare(queue="settlement_fx_queue", durable=True)
 
-    BRONZE_PATH = "../data/bronze"
+    BRONZE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "bronze")
     os.makedirs(BRONZE_PATH, exist_ok=True)
 
     def callback(ch, method, properties, body):
@@ -36,7 +38,7 @@ def consume_data():
         except Exception as e:
             print(f"Error: {e}")
 
-            ch.basic_ack(delivery_tag=method.delivery_tag, requeue=True)
+            ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
     channel.basic_consume(queue="settlement_fx_queue", on_message_callback=callback, auto_ack=False)
     channel.start_consuming()
