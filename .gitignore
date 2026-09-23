@@ -2,3 +2,5 @@
 etl/__pycache__
 venv
 data/
+dashboard/__pycache__
+medallion/__pycache__
