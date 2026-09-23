@@ -16,7 +16,7 @@ def publish_fx_settlement_data():
     MERCHANT_POOL = generate_merchant_pool(num_merchants=25, output_path="../data/merchant_dim.json")
 
     credentials = pika.PlainCredentials(os.getenv("RABBIT_MQ_USER"),os.getenv("RABBIT_MQ_PASSWORD"))
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.getenv("RABBIT_MQ_HOST"), port=int(os.getenv("RABBIT_MQ_PORT")), credentials=credentials))
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host="localhost", port=5672, credentials=credentials))
     channel = connection.channel()
     channel.queue_declare(queue="settlement_fx_queue", durable=True)
 

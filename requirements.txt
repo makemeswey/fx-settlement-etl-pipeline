@@ -1,0 +1,5 @@
+pika
+requests
+pyspark
+Faker
+python-dotenv
