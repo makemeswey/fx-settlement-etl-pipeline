@@ -3,3 +3,6 @@ requests
 pyspark
 Faker
 python-dotenv
+streamlit
+dash
+pandas

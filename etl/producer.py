@@ -13,10 +13,10 @@ def publish_fx_settlement_data():
     FX_API_KEY = os.getenv("EXCHANGE_RATE_API_KEY")
     API_URL = f"https://v6.exchangerate-api.com/v6/{FX_API_KEY}/latest/MYR"
 
-    MERCHANT_POOL = generate_merchant_pool(num_merchants=25, output_path="../data/merchant_dim.json")
+    MERCHANT_POOL = generate_merchant_pool(num_merchants=25)
 
     credentials = pika.PlainCredentials(os.getenv("RABBIT_MQ_USER"),os.getenv("RABBIT_MQ_PASSWORD"))
-    connection = pika.BlockingConnection(pika.ConnectionParameters(host="localhost", port=5672, credentials=credentials))
+    connection = pika.BlockingConnection(pika.ConnectionParameters(host=os.getenv("RABBIT_MQ_HOST"), port=int(os.getenv("RABBIT_MQ_PORT")), credentials=credentials))
     channel = connection.channel()
     channel.queue_declare(queue="settlement_fx_queue", durable=True)
 
@@ -60,7 +60,7 @@ def publish_fx_settlement_data():
                             )
                         )
 
-                        print(transaction)
+                        # print(transaction)
 
                     else:
                         print(f"API error response: {data.get('error-type')}")
@@ -68,7 +68,7 @@ def publish_fx_settlement_data():
                 else:
                     print(f"HTTP Error: {response.status_code}")
 
-                time.sleep(1)
+                time.sleep(0.01)
 
         except Exception as e:
             print(e)

@@ -1,12 +1,19 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col
+
+from paths import BRONZE, SILVER
 
 def clean_data():
     spark = (
         SparkSession.builder.appName("FX Silver").getOrCreate()
     )
 
-    df = spark.read.json("../data/bronze/")
+    df = spark.read.json(str(BRONZE))
 
     silver_df = (
         df
@@ -21,7 +28,7 @@ def clean_data():
         .filter(col("applied_fx_rate") > 0)
     )
 
-    silver_df.write.mode("append").parquet("../data/silver/")
+    silver_df.write.mode("overwrite").parquet(str(SILVER))
 
     spark.stop()
 

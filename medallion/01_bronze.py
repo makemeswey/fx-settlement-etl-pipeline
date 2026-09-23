@@ -1,10 +1,16 @@
 # The consumer in this context
 
-import pika
 import json
 import os
+import sys
 from datetime import datetime
+from pathlib import Path
+
+import pika
 from dotenv import load_dotenv
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from paths import BRONZE
 
 def consume_data():
     load_dotenv()
@@ -17,8 +23,7 @@ def consume_data():
     channel = connection.channel()
     channel.queue_declare(queue="settlement_fx_queue", durable=True)
 
-    BRONZE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "bronze")
-    os.makedirs(BRONZE_PATH, exist_ok=True)
+    BRONZE.mkdir(parents=True, exist_ok=True)
 
     def callback(ch, method, properties, body):
         try:
@@ -26,7 +31,7 @@ def consume_data():
             json.loads(raw_json)
             date = datetime.utcnow().strftime("%Y-%m-%d")
 
-            file_path = os.path.join(BRONZE_PATH,f"settlement_fx_{date}.json")
+            file_path = BRONZE / f"settlement_fx_{date}.json"
 
             with open(file_path,"a") as f:
                 f.write(raw_json + "\n")
