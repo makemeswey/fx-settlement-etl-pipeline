@@ -68,7 +68,7 @@ def publish_fx_settlement_data():
                 else:
                     print(f"HTTP Error: {response.status_code}")
 
-                time.sleep(0.01)
+                time.sleep(0.001)
 
         except Exception as e:
             print(e)
