@@ -4,3 +4,4 @@ venv
 data/
 dashboard/__pycache__
 medallion/__pycache__
+__pycache__
